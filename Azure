@@ -1,0 +1,96 @@
+getgenv().script_key = getgenv()['script_key']
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/main/Library.lua"))()
+local api = loadstring(game:HttpGet("https://sdkapi-public.luarmor.net/library.lua"))()
+local Window = Library:CreateWindow({Title = "Azure ", Footer = "Key System", Icon = 112280917739514, NotifySide = "Left", ShowCustomCursor = false})
+local Tabs = {Key = Window:AddTab("Azure Keysystem", "key")}
+
+local keyInput = Tabs.Key:AddLeftGroupbox("Key Input")
+local keyLinks = Tabs.Key:AddRightGroupbox("Key System Links")
+local uiUnload = Tabs.Key:AddRightGroupbox("UI Unloading")
+
+if not game:GetService("Players").LocalPlayer then
+    game:GetService("Players").PlayerAdded:Wait()
+end
+
+local function load_game_script(key)
+    local placeId = game.PlaceId
+    local success, err = pcall(function()
+        if placeId == 73956553001240 then
+            api.script_id = "5f64ce462bf8ca3880ec58844926ef6b"
+            getgenv().script_key = key
+            loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/5f64ce462bf8ca3880ec58844926ef6b.lua"))()
+        elseif placeId == 16044264830 then
+            api.script_id = "52bde2f8f3575360a08cb188c4d58760"
+            getgenv().script_key = key
+            loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/52bde2f8f3575360a08cb188c4d58760.lua"))()
+        end
+    end)
+    if success then
+        task.wait()
+        Library:Unload()
+    else
+        Library:Notify({Title = "Azure Keysystem", Description = "something went wrong: " .. tostring(err), Time = 4})
+    end
+end
+
+keyInput:AddInput("AzureKey", {
+    Default = "",
+    Numeric = false,
+    Finished = true,
+    ClearTextOnFocus = false,
+    Text = "Enter Key",
+    Placeholder = "Paste your key here",
+    Callback = function(Value)
+        local placeId = game.PlaceId
+        if placeId == 73956553001240 then
+            api.script_id = "5f64ce462bf8ca3880ec58844926ef6b"
+        elseif placeId == 16044264830 then
+            api.script_id = "52bde2f8f3575360a08cb188c4d58760"
+        end
+        local status = api.check_key(Value)
+        if status.code == "KEY_VALID" then
+            writefile("savedazurekey", Value)
+            Library:Notify({Title = "Azure Keysystem", Description = "Welcome! Key: " .. Value .. " accepted and saved.", Time = 4})
+            load_game_script(Value)
+        elseif status.code == "KEY_HWID_LOCKED" then
+            Library:Notify({Title = "Azure Keysystem", Description = "Key linked to a different HWID. Please reset it using our bot.", Time = 4})
+        elseif status.code == "KEY_INCORRECT" then
+            Library:Notify({Title = "Azure Keysystem", Description = "Key is wrong or deleted!", Time = 4})
+        else
+            Library:Notify({Title = "Azure Keysystem", Description = "Key is invalid! " .. status.message .. " (Code: " .. status.code .. ")", Time = 4})
+        end
+    end
+})
+
+keyLinks:AddButton({Text = "Linkvertise", Func = function()
+    setclipboard("https://ads.luarmor.net/get_key?for=Azure_Hub_KEY-otfjcauwUgdh")
+    Library:Notify({Title = "Azure Keysystem", Description = "Linkvertise link copied to clipboard!", Time = 2})
+end})
+
+keyLinks:AddButton({Text = "Lootlabs", Func = function()
+    setclipboard("https://ads.luarmor.net/get_key?for=Azure_Hub_Lootlabs-nRjyMTOmyBby")
+    Library:Notify({Title = "Azure Keysystem", Description = "Lootlabs link copied to clipboard!", Time = 2})
+end})
+
+uiUnload:AddButton({Text = "Unload UI", Func = function()
+    Library:Unload()
+end})
+
+if isfile("savedazurekey") then
+    task.spawn(function()
+        local saved_key = readfile("savedazurekey"):gsub("%s+", "")
+        local placeId = game.PlaceId
+        if placeId == 73956553001240 then
+            api.script_id = "5f64ce462bf8ca3880ec58844926ef6b"
+        elseif placeId == 16044264830 then
+            api.script_id = "52bde2f8f3575360a08cb188c4d58760"
+        end
+        local status = api.check_key(saved_key)
+        if status.code == "KEY_VALID" then
+            getgenv().script_key = saved_key
+            Library:Notify({Title = "Azure Keysystem", Description = "Loaded saved key: " .. saved_key, Time = 4})
+            load_game_script(saved_key)
+        end
+    end)
+end
